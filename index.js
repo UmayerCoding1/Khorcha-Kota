@@ -20,7 +20,14 @@ app.get('/', (req, res) => {
 })
 
 import authRouter from './routers/auth.route.js';
+import budgetRouter from './routers/budget.route.js';
+import expenseRouter from './routers/expense.route.js';
+
+
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1', budgetRouter);
+app.use('/api/v1', expenseRouter);
+
 
 app.listen(port, ( )=> {
     console.log(`Server is running on port ${port}`);

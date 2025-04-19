@@ -101,25 +101,20 @@ export const logout = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Logout successful", success: true });
 });
 
+export const getLoginUser = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
 
+  try {
+    const user = await User.findById(_id).select(
+      "-password -__v -createdAt -updatedAt"
+    );
 
-export const getLoginUser = asyncHandler(async(req,res) => {
-    const {_id} = req.user;
-    
-    try {
-        const user = await User.findById(_id).select("-password -__v -createdAt -updatedAt");
-        
-        if(!user) {
-            return res.status(404).json({message:"User not found"})
-        }
-        return res.status(200).json({message:"User found", user, success:true}) 
-    } catch (error) {
-        console.log(error.message);
-        return res.status(500).json({message:"Internal server error"})
-        
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-    if(!user) {
-        return res.status(404).json({message:"User not found"})
-    }
-    
-})
+    return res.status(200).json({ message: "User found", user, success: true });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
