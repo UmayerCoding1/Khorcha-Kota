@@ -30,7 +30,8 @@ export const addBudget = asyncHandler(async(req,res) => {
 
 
 export const getBudget = asyncHandler(async(req,res) => {
-    const { userId } = req.body;
+    
+    const { userId } = req.query;
     if (!userId) {
         return res.status(400).json({ message: "Please provide userId" });
     }
@@ -40,7 +41,10 @@ export const getBudget = asyncHandler(async(req,res) => {
         if (!budgets) {
             return res.status(404).json({ message: "No budgets found" });
         }
-        return res.status(200).json({ message: "Budgets fetched successfully", budgets, success: true });
+
+        const budget = budgets[0];
+        
+        return res.status(200).json({ message: "Budgets fetched successfully", budget, success: true });
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ message: "Internal server error" });

@@ -23,8 +23,6 @@ export const addExpense = asyncHandler(async (req, res) => {
       return total + item.itemprice;
     }, 0);
 
-    console.log(expenseTotal);
-
     const isDue = budget?.remainingBudget < expenseTotal;
 
     const expenseData = await Expense.findOne({ userId, mounth, year });
@@ -32,7 +30,7 @@ export const addExpense = asyncHandler(async (req, res) => {
       expenseData.expense.push(...expense);
       await expenseData.save();
       if (!isDue) {
-         await Budget.findOneAndUpdate(
+        await Budget.findOneAndUpdate(
           { userId },
           {
             $inc: { remainingBudget: -expenseTotal },
@@ -72,7 +70,7 @@ export const addExpense = asyncHandler(async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    
+
     res.status(500).json({ message: "Internal server error" });
   }
 });

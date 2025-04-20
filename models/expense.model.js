@@ -20,7 +20,7 @@ const expenseSchema = new Schema({
                 type: String,
                 default: () => {
                     const now = new Date();
-                    return `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+                    return `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
                 }
             }
         }

@@ -52,7 +52,7 @@ export const login = asyncHandler(async (req, res) => {
     }
 
     const isPasswordMatched = await bcrypt.compare(password, user.password);
-    console.log(isPasswordMatched);
+  
 
     if (!isPasswordMatched) {
       return res
@@ -77,13 +77,14 @@ export const login = asyncHandler(async (req, res) => {
       })
       .json({
         message: "Login successful",
-        succesFs: true,
+        success: true,
+        token: token,
         data: {
-          id: user._id,
+          _id: user._id,
           fullname: user.fullname,
           username: user.username,
           email: user.email,
-          token: token,
+          avatar: user.avatar
         },
       });
   } catch (error) {
