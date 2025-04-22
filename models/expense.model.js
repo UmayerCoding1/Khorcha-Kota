@@ -1,38 +1,54 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const expenseSchema = new Schema({
+const expenseSchema = new Schema(
+  {
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    expense:[
-        {
-            itemname: {
-                type: String,
-                required: true,
-            },
-            itemprice: {
-                type: Number,
-                required: true,
-            },
-            date: {
-                type: String,
-                default: () => {
-                    const now = new Date();
-                    return `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
-                }
-            }
-        }
+    expense: [
+      {
+        itemname: {
+          type: String,
+          required: true,
+        },
+        qty: {
+          type: Number,
+          required: true,
+        },
+        kgprice: {
+          type: Number,
+          required: true,
+        },
+        type: {
+            type: String,
+            required: true,
+            enum: ["kg", "quantity"]
+          },          
+        date: {
+          type: String,
+          default: () => {
+            const now = new Date();
+            return `${now.getDate()}-${
+              now.getMonth() + 1
+            }-${now.getFullYear()}`;
+          },
+        },
+      },
     ],
-    mounth: {
-        type: String,
-        default: new Date().toLocaleString('default', { month: 'long' }).toLocaleLowerCase()
+    month: {
+      type: String,
+      default: new Date()
+        .toLocaleString("default", { month: "long" })
+        .toLocaleLowerCase(),
     },
     year: {
-        type: String,
-        default: new Date().getFullYear()
-    }
-},{timestamps: true});
+      type: String,
+      default: new Date().getFullYear(),
+    },
+  },
+  { timestamps: true }
+);
 
 export const Expense = mongoose.model("Expense", expenseSchema);

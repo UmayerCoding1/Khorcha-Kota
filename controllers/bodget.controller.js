@@ -1,5 +1,6 @@
 import { Budget } from "../models/budget.model.js";
 import asyncHandler from "../utils/AsyncHandler.js";
+import {ObjectId} from 'mongoose'
 
 export const addBudget = asyncHandler(async(req,res) => {
     const { userId, mouth, year, budget } = req.body;
@@ -27,6 +28,40 @@ export const addBudget = asyncHandler(async(req,res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 });
+
+export const addNextBudget = asyncHandler(async(req,res) => {
+    const {nextBudget,budgetId} = req.body;
+    if (!budgetId || !nextBudget) {
+        return res.status(404).json({message: "All feaild is require",success: false})
+    }
+    const incrementValue = Number(nextBudget);
+    if (isNaN(incrementValue)) {
+      return res.status(400).json({ message: "Invalid budget value", success: false });
+    }
+
+    try {
+        const existingBudget = await Budget.findOne({_id: budgetId});
+        if (!existingBudget) {
+            return res.status(400).json({message: "Budget not found", success: false});
+        }
+
+       
+        
+
+        const updateBudget = await Budget.findByIdAndUpdate(
+            {_id: budgetId},
+            {$inc: {budget: incrementValue, remainingBudget: incrementValue}},
+            {new : true}
+        )
+
+       return res.status(202).json({message: "Next budget added successfully", success: true})
+        
+    } catch (error) {
+       console.log(error);
+       
+    }
+    
+})
 
 
 export const getBudget = asyncHandler(async(req,res) => {

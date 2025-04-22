@@ -8,28 +8,58 @@ export const addExpense = asyncHandler(async (req, res) => {
   if (!userId || !expense) {
     return res.status(400).json({ message: "Please provide all fields" });
   }
+
   if (!Array.isArray(expense)) {
     return res.status(400).json({ message: "Expense should be an array" });
   }
 
-  const mounth = new Date()
+  // Validate that all items in the expense array have required fields
+  const invalidItems = expense.filter(
+    (item) => !item.kgprice || !item.qty || isNaN(item.kgprice) || isNaN(item.qty)
+  );
+
+  if (invalidItems.length > 0) {
+    return res.status(400).json({
+      message: "All expense items must have valid `kgprice` and `qty` fields",
+      success: false,
+    });
+  }
+
+  const month = new Date()
     .toLocaleString("default", { month: "long" })
-    .toLocaleLowerCase();
+    .toLowerCase();
   const year = new Date().getFullYear();
+
   try {
     const budget = await Budget.findOne({ userId });
 
+    if (!budget) {
+      return res.status(404).json({ message: "Check budget", success: false });
+    }
+
     const expenseTotal = expense.reduce((total, item) => {
-      return total + item.itemprice;
+      const itemQty = item.qty;
+      const itemKgPrice = item.kgprice;
+      const totalAmount = itemQty * itemKgPrice;
+      return total + totalAmount;
     }, 0);
 
     const isDue = budget?.remainingBudget < expenseTotal;
+    if (isDue) {
+      return res
+        .status(201)
+        .json({ message: "Budget issue! Please check your budget.", success: false });
+    }
 
-    const expenseData = await Expense.findOne({ userId, mounth, year });
+    const expenseData = await Expense.findOne({ userId, month, year });
+
     if (expenseData) {
-      expenseData.expense.push(...expense);
-      await expenseData.save();
       if (!isDue) {
+        //  sort expenses by date
+        expenseData.expense.push(...expense);
+        expenseData.expense.sort((a, b) => new Date(b.date) - new Date(a.date));
+        await expenseData.save();
+
         await Budget.findOneAndUpdate(
           { userId },
           {
@@ -38,56 +68,64 @@ export const addExpense = asyncHandler(async (req, res) => {
           { new: true }
         );
 
-        await budget.save();
+        return res
+          .status(200)
+          .json({ message: "Expense added successfully", success: true });
       }
-      return res.status(200).json({ message: "Expense added successfully" });
     } else {
+      // Sort the new expenses by date before saving
+      const sortedExpenses = expense.sort((a, b) => new Date(a.date) - new Date(b.date));
+
       const newExpense = new Expense({
         userId,
-        expense,
-        mounth: new Date()
-          .toLocaleString("default", { month: "long" })
-          .toLocaleLowerCase(),
-        year: new Date().getFullYear(),
+        expense: sortedExpenses,
+        month,
+        year,
       });
       await newExpense.save();
 
-      if (!isDue) {
-        await Budget.findOneAndUpdate(
-          { userId },
-          {
-            $inc: { remainingBudget: -expenseTotal },
-          },
-          { new: true }
-        );
-
-        await budget.save();
-      }
+      await Budget.findOneAndUpdate(
+        { userId },
+        {
+          $inc: { remainingBudget: -expenseTotal },
+        },
+        { new: true }
+      );
 
       return res
         .status(201)
-        .json({ message: "Expense created successfully", budget });
+        .json({ message: "Expense created successfully", success: true });
     }
   } catch (error) {
     console.log(error);
-
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
 export const getExpense = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
+  const { userId, month, year,filterDate} = req.query;
+  
   if (!userId) {
     return res.status(400).json({ message: "Please provide all fields" });
   }
   try {
-    const expenseData = await Expense.findOne({ userId });
-    if (!expenseData) {
-      return res.status(404).json({ message: "No expense found" });
+    const expenseRecord = await Expense.findOne({ userId, month, year }).select("-year -month -createdAt -updatedAt");
+
+    if (!expenseRecord) {
+      return res.status(404).json({ message: "No expense data found" });
     }
-    return res
-      .status(200)
-      .json({ message: "Expense fetched successfully", expenseData });
+
+    let filteredExpenses = expenseRecord.expense;
+
+    // Filter only if filterDate is provided and not empty
+    if (filterDate && filterDate.trim() !== "") {
+      filteredExpenses = filteredExpenses.filter(item => item.date === filterDate);
+    }
+
+    return res.status(200).json({
+      message: "Expense data retrieved successfully",
+      expenses: filteredExpenses,
+    })
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
