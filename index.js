@@ -10,7 +10,8 @@ const app = express();
 app.use(cors({
     origin: [
         "http://localhost:5173",
-        "https://khorcha-kota-client.vercel.app"
+        "https://khorcha-kota-client.vercel.app",
+        "https://l4wm0wrv-5173.inc1.devtunnels.ms"
     ],
     credentials: true
 }));
