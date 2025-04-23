@@ -3,11 +3,13 @@ import asyncHandler from "../utils/AsyncHandler.js";
 import {ObjectId} from 'mongoose'
 
 export const addBudget = asyncHandler(async(req,res) => {
-    const { userId, mouth, year, budget } = req.body;
-    if (!userId || !mouth || !year || !budget ) {
+    const { userId, mouth, year, budget,budgetInfo } = req.body;
+    if (!userId || !mouth || !year || !budget || !budgetInfo) {
         return res.status(400).json({ message: "Please fill all the fields" });
     }
 
+     console.log(req.body);
+     
     try {
         const existingBudget = await Budget.findOne({ userId, mouth, year });
         if (existingBudget) {
@@ -20,6 +22,7 @@ export const addBudget = asyncHandler(async(req,res) => {
             year,
             budget,
             remainingBudget : budget, 
+            budgetInfo
         });
 
         return res.status(201).json({ message: "Budget created successfully", success: true });
@@ -30,14 +33,17 @@ export const addBudget = asyncHandler(async(req,res) => {
 });
 
 export const addNextBudget = asyncHandler(async(req,res) => {
-    const {nextBudget,budgetId} = req.body;
-    if (!budgetId || !nextBudget) {
+    const {nextBudget,budgetId,budgetInfo} = req.body;
+    if (!budgetId || !nextBudget || !budgetInfo) {
         return res.status(404).json({message: "All feaild is require",success: false})
     }
     const incrementValue = Number(nextBudget);
     if (isNaN(incrementValue)) {
       return res.status(400).json({ message: "Invalid budget value", success: false });
     }
+
+    console.log(req.body);
+    
 
     try {
         const existingBudget = await Budget.findOne({_id: budgetId});
@@ -50,9 +56,15 @@ export const addNextBudget = asyncHandler(async(req,res) => {
 
         const updateBudget = await Budget.findByIdAndUpdate(
             {_id: budgetId},
-            {$inc: {budget: incrementValue, remainingBudget: incrementValue}},
+            {
+                $inc: {budget: incrementValue, remainingBudget: incrementValue},
+                $push: {budgetInfo: budgetInfo}
+            },
             {new : true}
         )
+
+        console.log(updateBudget);
+        
 
        return res.status(202).json({message: "Next budget added successfully", success: true})
         

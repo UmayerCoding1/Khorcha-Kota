@@ -19,6 +19,12 @@ const budgetSchema = new Schema(
       type: Number,
       required: true,
     },
+    budgetInfo: [
+      {
+        addeddate: {type: String, required: true},
+        amount: {type: Number, required: true}
+      }
+    ],
     remainingBudget: {
       type: Number,
       default: 0,
