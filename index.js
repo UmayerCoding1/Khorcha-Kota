@@ -13,6 +13,7 @@ app.use(cors({
         "https://khorcha-kota-psi.vercel.app"
         
     ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
 app.use(express.json());
