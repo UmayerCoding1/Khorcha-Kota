@@ -8,7 +8,7 @@ export const addBudget = asyncHandler(async(req,res) => {
         return res.status(400).json({ message: "Please fill all the fields" });
     }
 
-     console.log(req.body);
+   
      
     try {
         const existingBudget = await Budget.findOne({ userId, mouth, year });
@@ -42,8 +42,7 @@ export const addNextBudget = asyncHandler(async(req,res) => {
       return res.status(400).json({ message: "Invalid budget value", success: false });
     }
 
-    console.log(req.body);
-    
+   
 
     try {
         const existingBudget = await Budget.findOne({_id: budgetId});
@@ -62,8 +61,7 @@ export const addNextBudget = asyncHandler(async(req,res) => {
             },
             {new : true}
         )
-
-        console.log(updateBudget);
+      
         
 
        return res.status(202).json({message: "Next budget added successfully", success: true})

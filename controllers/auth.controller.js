@@ -4,26 +4,32 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export const register = asyncHandler(async (req, res) => {
-  const { fullname, username, email, password } = req.body;
-  if (!fullname || !username || !email || !password) {
+  const { fullname, number, password } = req.body;
+ 
+ 
+  
+  if (!fullname  || !number || !password) {
     return res.status(400).json({ message: "Please fill all the fields" });
   }
 
   try {
-    const existingUser = await User.findOne({ email, username });
+    const existingUser = await User.findOne({number});
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "User already exists", success: false });
     }
 
     const hasPassword = await bcrypt.hash(password, 10);
+   
+    
     if (!hasPassword) {
+     
+      
       return res.status(500).json({ message: "Internal server error" });
     }
 
     const user = await User.create({
       fullname,
-      username,
-      email,
+      number,
       password: hasPassword,
     });
 
@@ -31,19 +37,19 @@ export const register = asyncHandler(async (req, res) => {
       .status(202)
       .json({ message: "User created successfully", success: true });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
 
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { number, password } = req.body;
+  if (!number || !password) {
     return res.status(400).json({ message: "Please fill all the fields" });
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ number });
 
     if (!user) {
       return res

@@ -131,8 +131,50 @@ export const getExpense = asyncHandler(async (req, res) => {
   }
 });
 
+export const updateExpense = asyncHandler(async (req, res) => {
+  const { userId, expenseId, updatedExpense } = req.body;
+
+  if (!userId || !expenseId || !updatedExpense) {
+    return res.status(400).json({ message: "Please provide all fields" });
+  }
+
+  try {
+    const expenseData = await Expense.findOne({ userId });
+    if (!expenseData) {
+      return res.status(404).json({ message: "No expense found for the user" });
+    }
+
+    const expenseIndex = expenseData.expense.findIndex(
+      (exp) => exp._id.toString() === expenseId
+    );
+
+    if (expenseIndex === -1) {
+      return res.status(404).json({ message: "Expense item not found" });
+    }
+
+    // Update the specific expense item
+    expenseData.expense[expenseIndex] = {
+      ...expenseData.expense[expenseIndex]._doc, // Preserve existing fields
+      ...updatedExpense, // Overwrite with updated fields
+    };
+
+    // Save the updated expense data
+    await expenseData.save();
+
+    return res.status(200).json({
+      message: "Expense updated successfully",
+      updatedExpense: expenseData.expense[expenseIndex], success: true
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 export const deleteExpense = asyncHandler(async (req, res) => {
   const { userId, expenseId } = req.body;
+ 
+  
   if (!userId || !expenseId) {
     return res.status(400).json({ message: "Please provide all fields" });
   }
@@ -157,8 +199,8 @@ export const deleteExpense = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Expense deleted successfully", updatedExpenseData });
+      .json({ message: "Expense deleted successfully", updatedExpenseData, success: true});
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+   return res.status(500).json({ message: "Internal server error" });
   }
 });
